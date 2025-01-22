@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Michael Chatbot</title>
+  <style>
+    #chatbot-container {
+      width: 300px;
+      height: 500px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    #chat-output {
+      height: 80%;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+    #chat-input {
+      display: flex;
+    }
+    #chat-input input {
+      flex: 1;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    #chat-input button {
+      padding: 5px 10px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbot-container">
+    <div id="chat-output"></div>
+    <div id="chat-input">
+      <input type="text" id="user-message" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatOutput = document.getElementById("chat-output");
+    let userName = '';
+
+    async function sendMessage() {
+      const userMessage = document.getElementById("user-message").value;
+      if (!userMessage.trim()) return;
+
+      appendMessage("You", userMessage);
+
+      // Check if it's the first message to get the user's name
+      if (!userName) {
+        userName = userMessage;
+        appendMessage("Michael", `Hi ${userName}, nice to meet you! What are you currently working on or needing help with?`);
+        document.getElementById("user-message").value = "";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://localhost:3001/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: userMessage, userName: userName }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        appendMessage("Michael", data.reply);
+      } catch (error) {
+        appendMessage("Michael", error.message || "Oops! Something went wrong. Please try again later.");
+      }
+
+      document.getElementById("user-message").value = "";
+    }
+
+    function appendMessage(sender, message) {
+      const messageElement = document.createElement("p");
+      messageElement.textContent = `${sender}: ${message}`;
+      chatOutput.appendChild(messageElement);
+      chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
+
+    // Initial greeting on page load
+    appendMessage("Michael", "Well hello there! Who am I speaking to?");
+  </script>
+</body>
+</html>
