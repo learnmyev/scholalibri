@@ -2,17 +2,23 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const OpenAI = require('openai');
-require('dotenv').config(); // Load .env variables
+require('dotenv').config(); // Load .env variables for local development
 console.log('API Key:', process.env.OPENAI_API_KEY); // Debug: Check if the key is loaded
 
 // Initialize Express app
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static('public')); // Serve static files from the 'public' directory
 
 // OpenAI Initialization
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // Ensure the .env file contains OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY, // Ensure the .env file contains OPENAI_API_KEY for local testing or set in Vercel
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.send('Welcome to the Scholalibri Chatbot Server!');
 });
 
 // Chat endpoint
@@ -65,7 +71,7 @@ Michael:`;
 });
 
 // Start server
-const port = 3001;
+const port = process.env.PORT || 3001; // Use environment variable for port if available, else default to 3001
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
