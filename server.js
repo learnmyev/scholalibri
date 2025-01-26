@@ -12,7 +12,6 @@ console.log('API Key:', process.env.OPENAI_API_KEY ? 'Loaded successfully' : 'Mi
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('public')); // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'scholalibri-frontend', 'build'))); // Serve React build in production
 
 // OpenAI Initialization
@@ -26,6 +25,11 @@ console.log('OpenAI initialized:', openai ? 'Success' : 'Failed');
 // Root endpoint to serve React app
 app.get('/', (req, res) => {
   console.log('Serving React app...'); // Debug log
+  res.sendFile(path.join(__dirname, 'scholalibri-frontend', 'build', 'index.html'));
+});
+
+// Wildcard route to serve React app for all routes
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'scholalibri-frontend', 'build', 'index.html'));
 });
 
