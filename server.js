@@ -2,27 +2,37 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const OpenAI = require('openai');
+const path = require('path');
 require('dotenv').config(); // Load .env variables for local development
-console.log('API Key:', process.env.OPENAI_API_KEY); // Debug: Check if the key is loaded
+
+// Debug: Check if the OpenAI API key is loaded
+console.log('API Key:', process.env.OPENAI_API_KEY ? 'Loaded successfully' : 'Missing or invalid');
 
 // Initialize Express app
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public')); // Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'scholalibri-frontend', 'build'))); // Serve React build in production
 
 // OpenAI Initialization
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // Ensure the .env file contains OPENAI_API_KEY for local testing or set in Vercel
 });
 
-// Root endpoint
+// Debug: Log OpenAI initialization
+console.log('OpenAI initialized:', openai ? 'Success' : 'Failed');
+
+// Root endpoint to serve React app
 app.get('/', (req, res) => {
-  res.send('Welcome to the Scholalibri Chatbot Server!');
+  console.log('Serving React app...'); // Debug log
+  res.sendFile(path.join(__dirname, 'scholalibri-frontend', 'build', 'index.html'));
 });
 
 // Chat endpoint
 app.post('/chat', async (req, res) => {
+  console.log('Chat request received:', req.body); // Debug log
+
   const { message, userName } = req.body;
   let prompt = '';
 
@@ -44,6 +54,8 @@ User's Message: ${message}
 Michael:`;
   }
 
+  console.log('Generated prompt:', prompt); // Debug log
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -52,14 +64,16 @@ Michael:`;
       temperature: 0.7,
     });
 
+    console.log('OpenAI API response:', completion); // Debug log
+
     if (completion && completion.choices && completion.choices.length > 0 && completion.choices[0].message && completion.choices[0].message.content) {
       res.json({ reply: completion.choices[0].message.content.trim() });
     } else {
       throw new Error('Unexpected response structure from OpenAI');
     }
   } catch (error) {
-    console.error("Error with OpenAI API:", error);
-    
+    console.error("Error with OpenAI API:", error); // Debug log
+
     if (error.response) {
       res.status(500).json({ error: `API Error: ${error.response.status} - ${error.response.statusText}. Please try again later.` });
     } else if (error.request) {

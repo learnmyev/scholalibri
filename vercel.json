@@ -1,9 +1,20 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" }
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "scholalibri-frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
   ],
   "routes": [
+    { "src": "/static/(.*)", "dest": "scholalibri-frontend/build/static/$1" },
     { "src": "/(.*)", "dest": "server.js" }
   ]
 }
